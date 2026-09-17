@@ -4,6 +4,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+
+	"final_project/api"
 )
 
 const defaultPort = "7540"
@@ -15,6 +17,7 @@ func CreateServer() {
 		port = defaultPort
 	}
 
+	api.Init()
 	http.Handle("/", http.FileServer(http.Dir(webDir)))
 
 	log.Printf("Starting server on port %s...", port)
