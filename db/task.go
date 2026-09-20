@@ -124,3 +124,92 @@ func ParseSearchDate(search string) (string, bool) {
 	}
 	return t.Format("20060102"), true
 }
+
+func GetTask(id string) (*Task, error) {
+	if database == nil {
+		return nil, fmt.Errorf("database is not initialized")
+	}
+
+	query := `SELECT id, date, title, comment, repeat FROM scheduler WHERE id = ?`
+	row := database.QueryRow(query, id)
+
+	task := &Task{}
+	err := row.Scan(&task.ID, &task.Date, &task.Title, &task.Comment, &task.Repeat)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("task not found")
+		}
+		return nil, fmt.Errorf("failed to get task: %w", err)
+	}
+
+	return task, nil
+}
+
+func UpdateTask(task *Task) error {
+	if database == nil {
+		return fmt.Errorf("database is not initialized")
+	}
+
+	query := `UPDATE scheduler SET date = ?, title = ?, comment = ?, repeat = ? WHERE id = ?`
+	res, err := database.Exec(query, task.Date, task.Title, task.Comment, task.Repeat, task.ID)
+	if err != nil {
+		return fmt.Errorf("failed to update task: %w", err)
+	}
+
+	count, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to get rows affected: %w", err)
+	}
+
+	if count == 0 {
+		return fmt.Errorf("task not found")
+	}
+
+	return nil
+}
+
+func DeleteTask(id string) error {
+	if database == nil {
+		return fmt.Errorf("database is not initialized")
+	}
+
+	query := `DELETE FROM scheduler WHERE id = ?`
+	res, err := database.Exec(query, id)
+	if err != nil {
+		return fmt.Errorf("failed to delete task: %w", err)
+	}
+
+	count, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to get rows affected: %w", err)
+	}
+
+	if count == 0 {
+		return fmt.Errorf("task not found")
+	}
+
+	return nil
+}
+
+func UpdateDate(next string, id string) error {
+	if database == nil {
+		return fmt.Errorf("database is not initialized")
+	}
+
+	query := `UPDATE scheduler SET date = ? WHERE id = ?`
+	res, err := database.Exec(query, next, id)
+	if err != nil {
+		return fmt.Errorf("failed to update date: %w", err)
+	}
+
+	count, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to get rows affected: %w", err)
+	}
+
+	if count == 0 {
+		return fmt.Errorf("task not found")
+	}
+
+	return nil
+}

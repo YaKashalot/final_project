@@ -2,17 +2,21 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"final_project/db"
 )
 
-func addTaskHandler(w http.ResponseWriter, r *http.Request) {
+func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
 	var task db.Task
 
 	if err := json.NewDecoder(r.Body).Decode(&task); err != nil {
-		writeError(w, fmt.Sprintf("invalid JSON: %s", err.Error()))
+		writeError(w, "invalid JSON: "+err.Error())
+		return
+	}
+
+	if task.ID == "" {
+		writeError(w, "id not set")
 		return
 	}
 
@@ -26,11 +30,10 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := db.AddTask(&task)
-	if err != nil {
+	if err := db.UpdateTask(&task); err != nil {
 		writeError(w, err.Error())
 		return
 	}
 
-	writeJSON(w, map[string]string{"id": fmt.Sprintf("%d", id)})
+	writeJSON(w, map[string]any{})
 }
