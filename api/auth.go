@@ -2,14 +2,13 @@ package api
 
 import (
 	"net/http"
-	"os"
 
 	"github.com/golang-jwt/jwt/v5"
 )
 
 func auth(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		pass := os.Getenv("TODO_PASSWORD")
+		pass := appConfig.Password
 
 		if len(pass) > 0 {
 			var tokenStr string
@@ -22,7 +21,7 @@ func auth(next http.HandlerFunc) http.HandlerFunc {
 			valid := validateToken(tokenStr, pass)
 
 			if !valid {
-				http.Error(w, "Authentification required", http.StatusUnauthorized)
+				writeError(w, http.StatusUnauthorized, "Authentification required")
 				return
 			}
 		}

@@ -2,13 +2,18 @@ package db
 
 import (
 	"database/sql"
+	"database/sql/driver"
 	"fmt"
 	"os"
+	"strings"
+	"sync"
 
-	_ "modernc.org/sqlite"
+	"modernc.org/sqlite"
 )
 
 var database *sql.DB
+
+var registerFuncsOnce sync.Once
 
 const schema = `
 CREATE TABLE scheduler (
@@ -21,7 +26,23 @@ CREATE TABLE scheduler (
 CREATE INDEX idx_scheduler_date ON scheduler (date);
 `
 
+func registerFuncs() {
+	sqlite.MustRegisterDeterministicScalarFunction(
+		"lower_unicode",
+		1,
+		func(ctx *sqlite.FunctionContext, args []driver.Value) (driver.Value, error) {
+			s, ok := args[0].(string)
+			if !ok {
+				return nil, nil
+			}
+			return strings.ToLower(s), nil
+		},
+	)
+}
+
 func Init(dbFile string) error {
+	registerFuncsOnce.Do(registerFuncs)
+
 	_, err := os.Stat(dbFile)
 
 	var install bool

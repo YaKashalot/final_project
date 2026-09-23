@@ -1,6 +1,7 @@
 package main
 
 import (
+	"final_project/config"
 	"log"
 	"os"
 
@@ -9,15 +10,13 @@ import (
 )
 
 func main() {
-	dbFile := os.Getenv("TODO_DBFILE")
-	if dbFile == "" {
-		dbFile = "scheduler.db"
-	}
-	err := db.Init(dbFile)
-	if err != nil {
+	cfg := config.Load()
+
+	if err := db.Init(cfg.DBFile); err != nil {
 		log.Println(err)
 		os.Exit(1)
 	}
 	defer db.Close()
-	server.CreateServer()
+
+	server.CreateServer(cfg)
 }

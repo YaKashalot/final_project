@@ -1,27 +1,21 @@
 package server
 
 import (
+	"final_project/api"
+	"final_project/config"
 	"log"
 	"net/http"
-	"os"
-
-	"final_project/api"
 )
 
 const defaultPort = "7540"
 const webDir = "./web"
 
-func CreateServer() {
-	port := os.Getenv("TODO_PORT")
-	if port == "" {
-		port = defaultPort
-	}
-
-	api.Init()
+func CreateServer(cfg config.Config) {
+	api.Init(cfg)
 	http.Handle("/", http.FileServer(http.Dir(webDir)))
 
-	log.Printf("Starting server on port %s...", port)
-	err := http.ListenAndServe(":"+port, nil)
+	log.Printf("Starting server on port %s...", cfg.Port)
+	err := http.ListenAndServe(":"+cfg.Port, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
